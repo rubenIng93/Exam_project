@@ -1,5 +1,7 @@
 from nltk.tokenize import word_tokenize
 from nltk.stem.wordnet import WordNetLemmatizer
+import re
+import string
 
 
 class LemmaTokenizer(object):
@@ -9,11 +11,14 @@ class LemmaTokenizer(object):
 
     def __call__(self, document):
         lemmas = []
+        re_digit = re.compile("[0-9]")
+
         for t in word_tokenize(document):
-            # word_tokenize(document) allow to make a list with all the words occurring in the document
-            # punctation not excluded !!
-            # t = t.translate(table)#it remove punctation
             t = t.strip()  # it remove spaces before and after the characters
             lemma = self.lemmatizer.lemmatize(t)  # apply the lemmatization
-            lemmas.append(lemma)
+
+            # Remove tokens with only punctuation chars and digits
+            if lemma not in string.punctuation and len(lemma) > 3 and len(lemma) < 16 and not re_digit.match(lemma):
+                lemmas.append(lemma)
+
         return lemmas
