@@ -1,34 +1,16 @@
 import pandas as pd
 import re
-import ItalianStemmerTokenizer
 from nltk.stem.snowball import ItalianStemmer
 import csv
 import time
-import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.svm import LinearSVC
 from stop_words import get_stop_words
-from sklearn.utils import resample
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.decomposition import TruncatedSVD
-from sklearn.pipeline import make_pipeline
 from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.ensemble import GradientBoostingClassifier
-from sklearn.svm import SVC
-from sklearn.naive_bayes import MultinomialNB
 from sklearn.metrics import classification_report, confusion_matrix, f1_score
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import GridSearchCV
-
-
-
-def balance_ds(data):
-    df_major = data.loc[data['class'] == 'pos']
-    df_minor = data.loc[data['class'] == 'neg']
-    df_down_sample = resample(df_major, replace=False, n_samples=9222, random_state=42)
-    balanced_df = pd.concat([df_down_sample, df_minor])
-    return balanced_df
 
 
 def plot_distribution(df):
@@ -79,40 +61,6 @@ def print_stats(y_test, y_pred):
 def load_data(file):
     df = pd.read_csv(file, sep=',')
     return df
-
-
-def into_tfidf(data):
-    # lemma = LemmaTokenizer.LemmaTokenizer()
-    stem = ItalianStemmerTokenizer.ItalianStemmerTokenizer()
-    stopwords = get_stop_words('it')
-    stopwords.extend(['abbi', 'abbiam', 'adess', 'allor', 'ancor', 'avemm', 'avend',
-                      'aver', 'avess', 'avesser', 'avessim', 'avest', 'avet', 'avev',
-                      'avevam', 'avra', 'avrann', 'avre', 'avrebb', 'avrebber',
-                      'avrem', 'avremm', 'avrest', 'avret', 'avro', 'avut', 'com',
-                      'contr', 'dentr', 'ebber', 'eran', 'erav', 'eravam', 'essend',
-                      'fac', 'facc', 'facess', 'facessim', 'facest', 'fann', 'far',
-                      'fara', 'farann', 'farebb', 'farebber', 'farem', 'farest',
-                      'fec', 'fecer', 'fin', 'foss', 'fosser', 'fossim', 'fost',
-                      'fumm', 'fur', 'giu', 'hann', 'lor', 'nostr', 'perc', 'piu',
-                      'poc', 'poch', 'qual', 'quant', 'quas', 'quell', 'quest',
-                      'quind', 'sar', 'sara', 'sarann', 'sare', 'sarebb', 'sarebber',
-                      'sarem', 'sarest', 'senz', 'siam', 'sian', 'siat', 'siet',
-                      'son', 'sopr', 'sott', 'stand', 'stann', 'star', 'stara',
-                      'starann', 'starebb', 'starebber', 'starem', 'starest',
-                      'stav', 'stavam', 'stemm', 'stess', 'stesser', 'stessim',
-                      'stest', 'stett', 'stetter', 'sti', 'stiam', 'tutt', 'vostr'])
-
-    vectorizer = TfidfVectorizer(tokenizer=stem, strip_accents='ascii',
-                                 stop_words=stopwords, ngram_range=(1, 2),
-                                 binary=True)
-    X_tfidf = vectorizer.fit_transform(data)
-    return X_tfidf
-
-
-def dim_reduction(tfidf, idx):
-    svd = TruncatedSVD(n_components=idx, random_state=25)
-    data = svd.fit_transform(tfidf)
-    return data
 
 
 def dump_to_file(filename, y_pred, dataset):
