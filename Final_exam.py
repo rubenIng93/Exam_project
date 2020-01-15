@@ -63,6 +63,59 @@ def load_data(file):
     return df
 
 
+def get_top_terms(num, final_model, tfidf_vec):
+    print('\nTOP ', num, ' Terms:')
+    feature_to_coef = {
+        word: coef for word, coef in zip(
+            tfidf_vec.get_feature_names(), final_model.coef_[0]
+        )
+    }
+    pos_terms = []
+    print('Positive:')
+    for best_positive in sorted(
+            feature_to_coef.items(),
+            key=lambda x: x[1],
+            reverse=True)[:num]:
+        print(best_positive)
+        pos_terms.append(best_positive)
+
+    print('Negative:')
+    neg_terms = []
+    for best_negative in sorted(
+            feature_to_coef.items(),
+            key=lambda x: x[1])[:num]:
+        print(best_negative)
+        neg_terms.append(best_negative)
+
+    x = list(range(1, num+1, 1))
+    n_labels = []
+    n_values = []
+    p_labels = []
+    p_values = []
+    for tupla in pos_terms:
+        lab, val = tupla
+        p_labels.append(lab)
+        p_values.append(val)
+    for tupla in neg_terms:
+        lab, val = tupla
+        n_labels.append(lab)
+        n_values.append(-val)
+
+    fig, ax = plt.subplots(figsize=(5, 5))
+    ax.bar(x, p_values, tick_label=p_labels)
+    plt.title('Most common Positive')
+    plt.ylabel('TfIdf Count')
+    fig.savefig('Positive_terms.png')
+    plt.show()
+
+    fig, ax = plt.subplots(figsize=(5, 5))
+    ax.bar(x, n_values, tick_label=n_labels)
+    plt.ylabel('TfIdf Count')
+    plt.title('Most common Negative')
+    fig.savefig('Negative_terms.png')
+    plt.show()
+
+
 def dump_to_file(filename, y_pred, dataset):
     with open(filename, mode="w", newline="") as csvfile:
         # Headers
@@ -140,6 +193,8 @@ final_model = clf.best_estimator_
 final_model.fit(X_train, y_train)
 y_pred = final_model.predict(X_test)
 
+# Showing the post common terms in both categories
+get_top_terms(5, final_model, tfidf_vec)
 
 # Dumping to file
 print('Dumping in file...')
