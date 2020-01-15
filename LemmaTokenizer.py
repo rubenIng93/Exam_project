@@ -1,5 +1,6 @@
 from nltk.tokenize import word_tokenize
 from nltk.stem.wordnet import WordNetLemmatizer
+from nltk.stem.snowball import ItalianStemmer
 import re
 import string
 
