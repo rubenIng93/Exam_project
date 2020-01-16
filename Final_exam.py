@@ -1,6 +1,7 @@
 import pandas as pd
 import re
 from nltk.stem.snowball import ItalianStemmer
+import seaborn as sns
 import csv
 import time
 import matplotlib.pyplot as plt
@@ -116,6 +117,16 @@ def get_top_terms(num, final_model, tfidf_vec):
     plt.show()
 
 
+def get_sns_cfmatrix(y_test, y_pred):
+    conf_mat = confusion_matrix(y_test, y_pred)
+    conf_mat_df = pd.DataFrame(conf_mat, index=['pos', 'neg'], columns=['pos', 'neg'])
+    conf_mat_df.index.name = 'Actual'
+    conf_mat_df.columns.name = 'Predicted'
+    plot = sns.heatmap(conf_mat_df, annot=True, cmap='GnBu',
+                annot_kws={"size": 20}, fmt='g', cbar=False)
+    plt.show()
+
+
 def dump_to_file(filename, y_pred, dataset):
     with open(filename, mode="w", newline="") as csvfile:
         # Headers
@@ -157,8 +168,8 @@ stem_dev = get_stemmed_text(no_sw_dev)
 stem_eva = get_stemmed_text(no_sw_eva)
 # 2) Vectorization
 print('Vectorization...')
-stop_words = ['milano','un','tutti','ci','lo','era']
-tfidf_vec = TfidfVectorizer(ngram_range=(1,2), binary=True, stop_words=stop_words)
+stop_words = ['milano', 'un', 'tutti', 'ci', 'lo', 'era', 'ma']
+tfidf_vec = TfidfVectorizer(ngram_range=(1,2), binary=True, stop_words=stop_words, min_df=4)
 X = tfidf_vec.fit_transform(cleaned_dev)
 X_test = tfidf_vec.transform(cleaned_eva)
 
@@ -187,6 +198,8 @@ f1_cv = cross_val_score(clf, X, labels, cv=3, scoring='f1_weighted')
 mean_f1 = f1_cv.mean()
 std_f1 = f1_cv.std()
 print(f"f1 (statistics): {mean_f1:.2f} (+/- {std_f1:.2f})")
+# Get seaborn confusion matrix
+get_sns_cfmatrix(y_val, clf.predict(X_val))
 # 4) Fit the final model with the best hyperparameters found
 print('Fitting final model...')
 final_model = clf.best_estimator_
