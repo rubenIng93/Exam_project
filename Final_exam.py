@@ -1,11 +1,13 @@
 import pandas as pd
 import re
 from nltk.stem.snowball import ItalianStemmer
+import ItalianStemmerTokenizer
 import seaborn as sns
 import csv
 import time
 import matplotlib.pyplot as plt
 from sklearn.svm import LinearSVC
+from sklearn.linear_model import SGDClassifier
 from stop_words import get_stop_words
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
@@ -29,9 +31,7 @@ def plot_distribution(df):
 def clean_data(data):
     re_digit = re.compile("[0-9\']")
     re_no_space = re.compile("[.;:!?,\"()\[\]]")
-    re_space = re.compile("(<br\s*/><br\s*/>)|(\-)|(\/)")
     data = [re_no_space.sub("", line.lower()) for line in data]
-    data = [re_space.sub(" ", line) for line in data]
     data = [re_digit.sub(" ", line) for line in data]
     return data
 
@@ -153,6 +153,7 @@ plot_distribution(dev_set)
 
 # Data Preprocessing:
 print('Start Preprocessing:')
+'''
 # 1) Data Cleaning
 # a. Removing punctuation, digits
 print('Cleaning text...')
@@ -166,12 +167,28 @@ no_sw_eva = remove_stop_words(cleaned_eva)
 print('Applying Stemmer...')
 stem_dev = get_stemmed_text(no_sw_dev)
 stem_eva = get_stemmed_text(no_sw_eva)
+'''
 # 2) Vectorization
-print('Vectorization...')
-stop_words = ['milano', 'un', 'tutti', 'ci', 'lo', 'era', 'ma']
-tfidf_vec = TfidfVectorizer(ngram_range=(1,2), binary=True, stop_words=stop_words, min_df=4)
-X = tfidf_vec.fit_transform(cleaned_dev)
-X_test = tfidf_vec.transform(cleaned_eva)
+print('Vectorization:')
+stem = ItalianStemmerTokenizer.ItalianStemmerTokenizer()
+stop_words = get_stop_words('it')
+#stop_words = ['milano', 'un', 'tutti', 'ci', 'lo', 'era', 'ma']
+stop_words.extend(['abbi', 'abbiam', 'adess', 'allor', 'ancor', 'avemm', 'avend', 'aver', 'avess', 'avesser', 'avessim',
+                   'avest', 'avet', 'avev', 'avevam', 'avra', 'avrann', 'avre', 'avrebb', 'avrebber', 'avrem', 'avremm',
+                   'avrest', 'avret', 'avut', 'com', 'contr', 'dentr', 'ebber', 'eran', 'erav', 'eravam', 'essend',
+                   'fac', 'facc', 'facess', 'facessim', 'facest', 'fann', 'far', 'fara', 'farann', 'farebb', 'farebber',
+                   'farem', 'farest', 'fec', 'fecer', 'fin', 'foss', 'fosser', 'fossim', 'fost', 'fumm', 'fur', 'hann',
+                   'lor', 'nostr', 'perc', 'poc', 'poch', 'qual', 'quant', 'quas', 'quell', 'quest', 'quind', 'sar',
+                   'sara', 'sarann', 'sare', 'sarebb', 'sarebber', 'sarem', 'sarest', 'senz', 'siam', 'sian', 'siat',
+                   'siet', 'son', 'sopr', 'sott', 'stand', 'stann', 'star', 'stara', 'starann', 'starebb', 'starebber',
+                   'starem', 'starest', 'stav', 'stavam', 'stemm', 'stess', 'stesser', 'stessim', 'stest', 'stett',
+                   'stetter', 'sti', 'stiam', 'tutt', 'vostr'])
+
+tfidf_vec = TfidfVectorizer(tokenizer=stem, ngram_range=(1,2), binary=True, stop_words=stop_words, min_df=8)
+print('Vectorizing dev set..')
+X = tfidf_vec.fit_transform(dev_set['text'])
+print('Vectorizing eval set..')
+X_test = tfidf_vec.transform(eva_set['text'])
 
 # Classification
 
@@ -180,13 +197,14 @@ labels = dev_set['class']
 # 1) Split data in Training and test set
 X_train, X_val, y_train, y_val = train_test_split(X, labels, test_size=0.2)
 # 2) Define a classifier
-clf = LinearSVC()
+clf = SGDClassifier()
+# clf = LinearSVC()
 # clf = RandomForestClassifier(n_estimators=100, min_impurity_decrease=0.12)
-#clf = GradientBoostingClassifier(n_estimators=250, min_impurity_decrease=0.2)
-# clf = SVC(gamma='auto')
+# clf = GradientBoostingClassifier(n_estimators=250, min_impurity_decrease=0.2)
 # clf = MultinomialNB()
 # Performing the Grid Search Cross Valitaion
-param_grid = {'C':[0.01, 0.05, 0.25, 0.5, 0.75, 1]}
+param_grid = {'loss':['hinge','modified_huber', 'squared_hinge'], 'warm_start':[True, False], 'penalty':['l1', 'l2']}
+# param_grid = {'C': [0.01, 0.1, 0.3, 0.5, 0.75, 0.8, 0.85, 0.9, 1]}
 gridsearch = GridSearchCV(clf, param_grid, scoring='f1_weighted', cv=5)
 clf = gridsearch.fit(X_train, y_train)
 print("Best model configuration is:")

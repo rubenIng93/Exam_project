@@ -13,12 +13,11 @@ class ItalianStemmerTokenizer(object):
         lemmas = []
         re_digit = re.compile('[0-9]')
         re_no_space = re.compile('[.;:!?,\"()\[\]]')
-        re_space = re.compile('(<br\s*/><br\s*/>)|(\-)|(\/)')
+
 
         for t in word_tokenize(document):
 
             t = re_digit.sub(" ", t)
-            t = re_space.sub(" ", t)
             t = re_no_space.sub("", t.lower())
             t = t.strip()  # it remove spaces before and after the characters
 
