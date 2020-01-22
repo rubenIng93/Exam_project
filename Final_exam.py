@@ -1,11 +1,11 @@
 import pandas as pd
-import re
-from nltk.stem.snowball import ItalianStemmer
-import ItalianStemmerTokenizer
 import seaborn as sns
 import csv
 import time
 import matplotlib.pyplot as plt
+from nltk.tokenize import word_tokenize
+from nltk.stem.snowball import ItalianStemmer
+import re
 from sklearn.svm import LinearSVC
 from sklearn.linear_model import SGDClassifier
 from stop_words import get_stop_words
@@ -138,6 +138,29 @@ def dump_to_file(filename, y_pred, dataset):
             writer.writerow({'Id': str(id), 'Predicted': str(cls)})
 
 
+# HERE THE STEMMER CLASS
+class ItalianStemmerTokenizer(object):
+    def __init__(self):
+        self.stemmer = ItalianStemmer()
+
+    def __call__(self, document):
+        lemmas = []
+        re_digit = re.compile('[0-9]')
+        re_no_space = re.compile('[.;:!?,\"()\[\]]')
+
+
+        for t in word_tokenize(document):
+
+            t = re_digit.sub(" ", t)
+            t = re_no_space.sub("", t.lower())
+            t = t.strip()  # it remove spaces before and after the characters
+
+            if t != '':
+                lemma = self.stemmer.stem(t)  # apply the stemmer
+                lemmas.append(lemma)
+
+        return lemmas
+
 
 # BELOW HERE THE PROGRAM:
 start_time = time.time()
@@ -170,7 +193,7 @@ stem_eva = get_stemmed_text(no_sw_eva)
 '''
 # 2) Vectorization
 print('Vectorization:')
-stem = ItalianStemmerTokenizer.ItalianStemmerTokenizer()
+stem = ItalianStemmerTokenizer()
 stop_words = get_stop_words('it')
 #stop_words = ['milano', 'un', 'tutti', 'ci', 'lo', 'era', 'ma']
 stop_words.extend(['abbi', 'abbiam', 'adess', 'allor', 'ancor', 'avemm', 'avend', 'aver', 'avess', 'avesser', 'avessim',
@@ -184,7 +207,7 @@ stop_words.extend(['abbi', 'abbiam', 'adess', 'allor', 'ancor', 'avemm', 'avend'
                    'starem', 'starest', 'stav', 'stavam', 'stemm', 'stess', 'stesser', 'stessim', 'stest', 'stett',
                    'stetter', 'sti', 'stiam', 'tutt', 'vostr'])
 
-tfidf_vec = TfidfVectorizer(tokenizer=stem, ngram_range=(1,2), binary=True, stop_words=stop_words, min_df=8)
+tfidf_vec = TfidfVectorizer(tokenizer=stem, ngram_range=(1,2), binary=True, stop_words=stop_words, min_df=4)
 print('Vectorizing dev set..')
 X = tfidf_vec.fit_transform(dev_set['text'])
 print('Vectorizing eval set..')
