@@ -145,7 +145,7 @@ class ItalianStemmerTokenizer(object):
 
     def __call__(self, document):
         lemmas = []
-        re_digit = re.compile('[0-9]')
+        re_digit = re.compile("[0-9\']")
         re_no_space = re.compile('[.;:!?,\"()\[\]]')
 
 
