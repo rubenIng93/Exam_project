@@ -205,9 +205,12 @@ stop_words.extend(['abbi', 'abbiam', 'adess', 'allor', 'ancor', 'avemm', 'avend'
                    'sara', 'sarann', 'sare', 'sarebb', 'sarebber', 'sarem', 'sarest', 'senz', 'siam', 'sian', 'siat',
                    'siet', 'son', 'sopr', 'sott', 'stand', 'stann', 'star', 'stara', 'starann', 'starebb', 'starebber',
                    'starem', 'starest', 'stav', 'stavam', 'stemm', 'stess', 'stesser', 'stessim', 'stest', 'stett',
-                   'stetter', 'sti', 'stiam', 'tutt', 'vostr'])
+                   'stetter', 'sti', 'stiam', 'tutt', 'vostr', 'stat', 'bagn', 'soggiorn', 'propr', 'quand', 'alberg',
+                   'hotel', 'post', 'sal', 'venez', 'min', 'due', 'pot', 'cam', 'volt', 'pied', 'camer', 'vist', 'lett',
+                   'reception', 'dop', 'cit', 'sol', 'ver', 'ogni', 'dir', 'pass', 'cos', 'fat', 'colazion', 'personal',
+                   'stazion', 'trov'])
 
-tfidf_vec = TfidfVectorizer(tokenizer=stem, ngram_range=(1,2), binary=True, stop_words=stop_words, min_df=4)
+tfidf_vec = TfidfVectorizer(tokenizer=stem, ngram_range=(1,2), binary=True, stop_words=stop_words, min_df=8)
 print('Vectorizing dev set..')
 X = tfidf_vec.fit_transform(dev_set['text'])
 print('Vectorizing eval set..')
