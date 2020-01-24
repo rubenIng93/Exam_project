@@ -212,16 +212,16 @@ stop_words.extend(['abbi', 'abbiam', 'adess', 'allor', 'ancor', 'avemm', 'avend'
 
 tfidf_vec = TfidfVectorizer(tokenizer=stem, ngram_range=(1,2), binary=True, stop_words=stop_words, min_df=8)
 print('Vectorizing dev set..')
-X = tfidf_vec.fit_transform(dev_set['text'])
+X_dev = tfidf_vec.fit_transform(dev_set['text'])
 print('Vectorizing eval set..')
-X_test = tfidf_vec.transform(eva_set['text'])
+X_eva = tfidf_vec.transform(eva_set['text'])
 
 # Classification
 
 print('Start Classification:')
 labels = dev_set['class']
 # 1) Split data in Training and test set
-X_train, X_val, y_train, y_val = train_test_split(X, labels, test_size=0.2)
+X_train, X_test, y_train, y_test = train_test_split(X_dev, labels, test_size=0.2)
 # 2) Define a classifier
 clf = SGDClassifier()
 # clf = LinearSVC()
@@ -237,18 +237,18 @@ print("Best model configuration is:")
 print(clf.best_params_)
 print("with f1 = ", clf.best_score_)
 # 3) Output the statistics & perform the cross validation
-print_stats(y_val, clf.predict(X_val))
-f1_cv = cross_val_score(clf, X, labels, cv=3, scoring='f1_weighted')
+print_stats(y_test, clf.predict(X_test))
+f1_cv = cross_val_score(clf, X_dev, labels, cv=3, scoring='f1_weighted')
 mean_f1 = f1_cv.mean()
 std_f1 = f1_cv.std()
 print(f"f1 (statistics): {mean_f1:.2f} (+/- {std_f1:.2f})")
 # Get seaborn confusion matrix
-get_sns_cfmatrix(y_val, clf.predict(X_val))
+get_sns_cfmatrix(y_test, clf.predict(X_test))
 # 4) Fit the final model with the best hyperparameters found
 print('Fitting final model...')
 final_model = clf.best_estimator_
 final_model.fit(X_train, y_train)
-y_pred = final_model.predict(X_test)
+y_pred = final_model.predict(X_eva)
 
 # Showing the post common terms in both categories
 get_top_terms(5, final_model, tfidf_vec)
